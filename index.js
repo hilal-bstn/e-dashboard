@@ -50,13 +50,13 @@ else
 }
 })
 
-app.post("/add-product",async (req,resp)=>{
+app.post("/add-product",verifyToken,async (req,resp)=>{
     let product=new Product(req.body);
     let result=await product.save();
     return resp.send(result);
 })
 
-app.get("/products",async (req,resp)=>{
+app.get("/products",verifyToken,async (req,resp)=>{
     let products=await Product.find();
     if(products.length>0)
     {
@@ -67,12 +67,12 @@ app.get("/products",async (req,resp)=>{
     }
 })
 
-app.delete("/product/:id", async (req,resp)=>{
+app.delete("/product/:id",verifyToken, async (req,resp)=>{
     const result = await Product.deleteOne({_id:req.params.id})
    return resp.send(result);
 })
 
-app.get("/product/:id",async (req,resp)=>{
+app.get("/product/:id",verifyToken,async (req,resp)=>{
     const result = await Product.findOne({_id:req.params.id});
     if(result)
     {
@@ -84,7 +84,7 @@ app.get("/product/:id",async (req,resp)=>{
 });
 
 
-app.put("/product/:id", async (req, resp) => {
+app.put("/product/:id", verifyToken,async (req, resp) => {
     console.log(req)
     let result = await Product.updateOne(
         {
@@ -103,7 +103,7 @@ app.put("/product/:id", async (req, resp) => {
     }
 });
 
-app.get("/search/:key", async (req,resp)=>{
+app.get("/search/:key",verifyToken, async (req,resp)=>{
         let result = await Product.find({
             "$or": [
                 { name: {$regex:req.params.key} },
@@ -113,5 +113,27 @@ app.get("/search/:key", async (req,resp)=>{
         });
         return resp.send(result);
 })
+
+function verifyToken(req,resp,next){
+    let token = req.headers['authorization'];
+    if(token)
+    { 
+        token = token.split(' ')[1];
+        Jwt.verify(token, jwtKey,(err,valid)=>{
+                if(err)
+                {
+                    return resp.status(401).send({result:"please privade valid token"})
+                }
+                else
+                {
+                    next();
+                }
+        }); 
+    }
+    else
+    {
+        return resp.status(200).send({result:"please add token with header"})
+    }
+}
 
 app.listen(5000);
