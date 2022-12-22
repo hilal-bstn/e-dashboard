@@ -57,7 +57,7 @@ app.delete("/product/:id", async (req,resp)=>{
 })
 
 app.get("/product/:id",async (req,resp)=>{
-    const result=await Product.findOne({_id:req.params.id});
+    const result = await Product.findOne({_id:req.params.id});
     resp.send(result);
     if(result)
     {
@@ -66,6 +66,16 @@ app.get("/product/:id",async (req,resp)=>{
     else{
         resp.send({result:"No record found."});
     }
-})
+});
+
+app.put("/product/:id", async (req,resp) => {
+    let result = await Product.updateOne(
+        { _id:req.params.id },
+        {
+            $set : req.body
+        }
+    ) 
+    resp.send();
+});
 
 app.listen(5000)
